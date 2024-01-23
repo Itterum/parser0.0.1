@@ -1,12 +1,20 @@
-import { CentrsvyaziExtractor } from './centrsvyazi'
-import { GitHubExtractor } from './githubTrending'
+import { CentrsvyaziExtractorCategory, CentrsvyaziExtractorCard } from './centrsvyazi'
+// import { GitHubExtractor } from './githubTrending'
 
 async function runExtractors(urls: string[]) {
-    const github = new GitHubExtractor()
-    const centrsvyazi = new CentrsvyaziExtractor()
+    // const github = new GitHubExtractor()
+    const centrsvyaziCategory = new CentrsvyaziExtractorCategory()
+    const centrsvyaziCard = new CentrsvyaziExtractorCard()
 
-    console.log(await centrsvyazi.parsePage(urls[0]))
-    console.log(await github.parsePage(urls[1]))
+    const categoryProducts = await centrsvyaziCategory.parsePage(urls[0])
+
+    console.log('Category products:')
+    console.log(categoryProducts)
+
+    console.log('Card products:')
+    for (const product of categoryProducts) {
+        console.log(await centrsvyaziCard.parsePage(product.url))
+    }
 }
 
 const urls = [
