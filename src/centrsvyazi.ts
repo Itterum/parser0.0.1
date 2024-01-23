@@ -1,12 +1,13 @@
 import { CheerioAPI } from "cheerio"
 import { BaseExtractor } from "./baseExtractor"
+import { Page } from "playwright"
 
 type Price = {
     value: number
     currency: string
 }
 
-type Product = {
+type ProductCategory = {
     name: string
     newPrice: Price
     oldPrice: Price
@@ -14,11 +15,20 @@ type Product = {
     url: string
 }
 
-export class CentrsvyaziExtractor extends BaseExtractor<Product> {
+type ProductCard = {
+    name: string
+    brand: string
+    newPrice: Price
+    oldPrice: Price
+    image: string
+    url: string
+}
+
+export class CentrsvyaziExtractorCategory extends BaseExtractor<ProductCategory> {
     domain = 'https://centrsvyazi.ru'
     waitSelector = '.products .product-item'
 
-    parseEntity($: CheerioAPI): Product {
+    parseEntity($: CheerioAPI): ProductCategory {
         const newPriceText = $('.price_cart > .doubleprice > .newprice').text().trim() || $('.price').text() || ''
 
         const [newValue, newCurrency] = newPriceText.split(/\s+/)
@@ -39,8 +49,40 @@ export class CentrsvyaziExtractor extends BaseExtractor<Product> {
             name: $('.product_link > h3').text().trim() || '',
             newPrice,
             oldPrice,
-            image: new URL(($('.product-image').attr('style')?.match(/url\(['"]?(.*?)['"]?\)/)?.[1].replace('micro_img', 'medium_img') || ''), this.domain).href,
+            image: new URL(($('.product-image').attr('style')?.match(/url\(['"]?(.*?)['"]?\)/)?.[1].replace('micro_img', 'big_img') || ''), this.domain).href,
             url: new URL(($('.product_link').attr('href') || ''), this.domain).href,
+        }
+    }
+}
+
+export class CentrsvyaziExtractorCard extends BaseExtractor<ProductCard> {
+    domain = 'https://centrsvyazi.ru'
+    waitSelector = '.content-page'
+
+    parseEntity($: CheerioAPI, page: Page): ProductCard {
+        const newPriceText = $('.price > .newprice').text().trim() || $('.price').text() || ''
+
+        const [newValue, newCurrency] = newPriceText.split(/\s+/)
+        const newPrice = {
+            value: parseFloat(newValue),
+            currency: newCurrency,
+        }
+
+        const oldPriceText = $('.price > .oldprice').text().trim() || ''
+
+        const [oldValue, oldCurrency] = oldPriceText.split(/\s+/)
+        const oldPrice = {
+            value: parseFloat(oldValue),
+            currency: oldCurrency,
+        }
+
+        return {
+            name: $('.product-title').text().trim().replace(/\s+/g, ' ') || '',
+            brand: $('#brand_name').text().trim() || '',
+            newPrice,
+            oldPrice,
+            image: new URL(($('.slick-track > img-p').attr('style')?.match(/url\(['"]?(.*?)['"]?\)/)?.[1].replace('micro_img', 'big_img') || ''), this.domain).href,
+            url: page.url().toString(),
         }
     }
 }
