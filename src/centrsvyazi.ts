@@ -7,7 +7,7 @@ type Price = {
     currency: string
 }
 
-type ProductCategory = {
+interface ProductCommon {
     name: string
     newPrice: Price
     oldPrice: Price
@@ -15,13 +15,10 @@ type ProductCategory = {
     url: string
 }
 
-type ProductCard = {
-    name: string
+type ProductCategory = ProductCommon
+
+type ProductCard = ProductCommon & {
     brand: string
-    newPrice: Price
-    oldPrice: Price
-    image: string
-    url: string
 }
 
 export class CentrsvyaziExtractorCategory extends BaseExtractor<ProductCategory> {
