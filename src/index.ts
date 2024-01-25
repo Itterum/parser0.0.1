@@ -18,7 +18,7 @@ async function runExtractors(urls: string[]) {
 }
 
 const urls = [
-    'https://centrsvyazi.ru/catalog/phones/apple',
+    'https://centrsvyazi.ru/catalog/phones',
     'https://github.com/trending'
 ]
 
