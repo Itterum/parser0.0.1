@@ -15,9 +15,9 @@ interface ProductCommon {
     url: string
 }
 
-type ProductCategory = ProductCommon
+export type ProductCategory = ProductCommon
 
-type ProductCard = ProductCommon & {
+export type ProductCard = ProductCommon & {
     brand: string
 }
 
@@ -57,7 +57,7 @@ export class CentrsvyaziExtractorCard extends BaseExtractor<ProductCard> {
     waitSelector = '.content-page'
 
     parseEntity($: CheerioAPI, page: Page): ProductCard {
-        const newPriceText = $('.price > .newprice').text().trim() || $('.price').text() || ''
+        const newPriceText = $('.price > .newprice').text().trim() || $('.price').text().trim() || ''
 
         const [newValue, newCurrency] = newPriceText.split(/\s+/)
         const newPrice = {
@@ -78,7 +78,7 @@ export class CentrsvyaziExtractorCard extends BaseExtractor<ProductCard> {
             brand: $('#brand_name').text().trim() || '',
             newPrice,
             oldPrice,
-            image: new URL(($('.slick-track > img-p').attr('style')?.match(/url\(['"]?(.*?)['"]?\)/)?.[1].replace('micro_img', 'big_img') || ''), this.domain).href,
+            image: new URL(($('.slick-track > div').attr('style')?.match(/url\(['"]?(.*?)['"]?\)/)?.[1].replace('medium_img', 'big_img') || ''), this.domain).href,
             url: page.url().toString(),
         }
     }
