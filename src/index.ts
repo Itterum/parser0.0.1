@@ -1,25 +1,49 @@
-import { CentrsvyaziExtractorCategory, CentrsvyaziExtractorCard } from './centrsvyazi'
-// import { GitHubExtractor } from './githubTrending'
+import { CentrsvyaziExtractorCategory, CentrsvyaziExtractorCard, ProductCard } from './centrsvyazi'
+import { indexData } from './elastic'
+import { Worker, isMainThread, workerData } from 'worker_threads'
 
-async function runExtractors(urls: string[]) {
-    // const github = new GitHubExtractor()
+async function parseCategory(urls: string[]) {
     const centrsvyaziCategory = new CentrsvyaziExtractorCategory()
+
+    return await centrsvyaziCategory.parsePage(urls[0])
+}
+
+async function parseCard(urls: ProductCard[]) {
     const centrsvyaziCard = new CentrsvyaziExtractorCard()
 
-    const categoryProducts = await centrsvyaziCategory.parsePage(urls[0])
+    for (let i = 0; i < urls.length; i++) {
+        const product = urls[i]
 
-    console.log('Category products:')
-    console.log(categoryProducts)
-
-    console.log('Card products:')
-    for (const product of categoryProducts) {
-        console.log(await centrsvyaziCard.parsePage(product.url))
+        try {
+            const entities = await centrsvyaziCard.parsePage(product.url)
+            await indexData('products', '_doc', entities[0])
+            console.info('Product recorded:', entities[0])
+        } catch (error) {
+            console.error('Error processing product:', error)
+        }
     }
 }
 
-const urls = [
-    'https://centrsvyazi.ru/catalog/phones',
-    'https://github.com/trending'
-]
+async function main() {
+    if (isMainThread) {
+        const urls = await parseCategory(['https://centrsvyazi.ru/catalog/phones'])
 
-runExtractors(urls);
+        const numWorkers = 5
+        const urlsPerWorker = Math.ceil(urls.length / numWorkers)
+
+        for (let i = 0; i < numWorkers; i++) {
+            const start = i * urlsPerWorker
+            const end = start + urlsPerWorker
+            const workerUrls = urls.slice(start, end)
+
+            const worker = new Worker(__filename, { workerData: { urls: workerUrls } })
+            worker.on('error', (error) => console.error('Worker error:', error))
+            worker.on('exit', (code) => console.info(`Worker exited with code ${code}`))
+        }
+    } else {
+        const { urls } = workerData
+        parseCard(urls)
+    }
+}
+
+main()
