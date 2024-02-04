@@ -1,5 +1,6 @@
 import * as cheerio from 'cheerio'
 import { chromium, Page } from "playwright"
+import { getRandomProxy } from './utils'
 
 export abstract class BaseExtractor<T> {
     abstract waitSelector: string
@@ -8,7 +9,7 @@ export abstract class BaseExtractor<T> {
     abstract parseEntity($: cheerio.CheerioAPI, page?: Page): T
 
     async scrollToEnd(page: Page): Promise<void> {
-        await page.evaluate( () => {
+        await page.evaluate(() => {
             return new Promise<void>((resolve) => {
                 const maxScrollAttempts = 10;
                 let currentScrollAttempt = 0;
@@ -35,12 +36,25 @@ export abstract class BaseExtractor<T> {
         });
     }
 
+    async logRequests(page: Page, proxy: string): Promise<void> {
+        page.on('request', (request) => {
+            console.log(`Request URL: ${request.url()}`);
+            console.log(`Request Method: ${request.method()}`);
+            console.log(`Request Headers: ${JSON.stringify(request.headers())}`);
+            console.log(`Request Post Data: ${request.postData()}`);
+            console.log(`Proxy Used: ${proxy}`);
+        });
+    }
+
     async parsePage(url: string): Promise<T[]> {
-        const browser = await chromium.launch()
+        const proxy = getRandomProxy()
+        const browser = await chromium.launch({ proxy })
         const page = await browser.newPage()
 
         try {
-            await page.goto(url)
+            await this.logRequests(page, proxy.server);
+
+            await page.goto(url, { timeout: 30000 })
             await page.waitForSelector(this.waitSelector)
 
             await this.scrollToEnd(page);

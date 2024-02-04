@@ -17,7 +17,6 @@ async function parseCard(urls: ProductCard[]) {
         try {
             const entities = await centrsvyaziCard.parsePage(product.url)
             await indexData('products', '_doc', entities[0])
-            console.info('Product recorded:', entities[0])
         } catch (error) {
             console.error('Error processing product:', error)
         }
@@ -43,7 +42,7 @@ async function main() {
     } else {
         const { urls } = workerData
         parseCard(urls)
-    }
+    }    
 }
 
 main()
