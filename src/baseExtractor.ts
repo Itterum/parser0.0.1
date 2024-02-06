@@ -1,6 +1,6 @@
 import * as cheerio from 'cheerio'
-import { chromium, Page } from "playwright"
-import { getRandomProxy } from './utils'
+import {chromium, Page} from "playwright"
+import {getRandomProxy} from './utils'
 
 export abstract class BaseExtractor<T> {
     abstract waitSelector: string
@@ -61,14 +61,12 @@ export abstract class BaseExtractor<T> {
 
             const entities = await page.$$(this.waitSelector)
 
-            const result = await Promise.all(entities.map(async (element) => {
+            return await Promise.all(entities.map(async (element) => {
                 const html = await element.innerHTML()
                 const $ = cheerio.load(html)
 
                 return this.parseEntity($, page)
             }))
-
-            return result
         } catch (error) {
             console.error(error)
             return []

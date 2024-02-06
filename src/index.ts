@@ -41,8 +41,8 @@ async function main() {
         }
     } else {
         const { urls } = workerData
-        parseCard(urls)
+        await parseCard(urls)
     }    
 }
 
-main()
+main().then(r => console.log(r))
