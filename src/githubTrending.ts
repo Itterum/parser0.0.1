@@ -1,5 +1,5 @@
-import { CheerioAPI } from "cheerio"
-import { BaseExtractor } from "./baseExtractor"
+import { CheerioAPI } from 'cheerio'
+import { BaseExtractor } from './baseExtractor'
 
 type Repository = {
     title: string
