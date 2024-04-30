@@ -9,45 +9,48 @@ export abstract class BaseExtractor<T> {
 
     async scrollToEnd(page: Page): Promise<void> {
         await page.evaluate(() => {
-            return new Promise<void>((resolve) => {
-                const maxScrollAttempts = 10
-                let currentScrollAttempt = 0
+            const maxScrollAttempts = 10
+            let currentScrollAttempt = 0
 
-                function checkScrollEnd() {
-                    currentScrollAttempt++
-                    if (currentScrollAttempt >= maxScrollAttempts) {
-                        resolve()
-                    } else {
-                        const scrollTop = document.documentElement.scrollTop || document.body.scrollTop
-                        const scrollHeight = document.documentElement.scrollHeight || document.body.scrollHeight
-
-                        if (scrollTop === scrollHeight) {
-                            resolve()
-                        } else {
-                            window.scrollTo(0, document.body.scrollHeight)
-                            setTimeout(checkScrollEnd, 1000)
-                        }
-                    }
+            function checkScrollEnd() {
+                currentScrollAttempt++
+                if (currentScrollAttempt >= maxScrollAttempts) {
+                    return
                 }
 
-                checkScrollEnd()
-            })
+                const scrollTop = document.documentElement.scrollTop || document.body.scrollTop
+                const scrollHeight = document.documentElement.scrollHeight || document.body.scrollHeight
+
+                if (scrollTop === scrollHeight) {
+                    return
+                }
+
+                window.scrollTo(0, scrollHeight)
+                requestAnimationFrame(checkScrollEnd)
+            }
+
+            checkScrollEnd()
         })
     }
 
     async logRequests(page: Page, proxy: string): Promise<void> {
         page.on('request', (request) => {
-            console.log(`Request URL: ${request.url()}`)
-            console.log(`Request Method: ${request.method()}`)
-            console.log(`Request Headers: ${JSON.stringify(request.headers())}`)
-            console.log(`Proxy Used: ${proxy}`)
+            const requestInfo = {
+                url: request.url(),
+                method: request.method(),
+                headers: request.headers(),
+                proxyUsed: proxy,
+            }
+
+            console.log('Request Info:', requestInfo)
         })
     }
 
     async parsePage(url: string): Promise<T[]> {
-        const browser = await chromium.connectOverCDP('http://localhost:9222')
-        const defaultContext = browser.contexts()[0]
-        const page = await defaultContext.newPage()
+        // const browser = await chromium.connectOverCDP('http://localhost:9222')
+        const browser = await chromium.launch()
+        // const defaultContext = browser.contexts()[0]
+        const page = await browser.newPage()
 
         try {
             await this.logRequests(page, '')
@@ -69,6 +72,7 @@ export abstract class BaseExtractor<T> {
             return []
         } finally {
             await page.close()
+            await browser.close()
         }
     }
 }

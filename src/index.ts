@@ -8,7 +8,7 @@ async function parseGitHub(urls: string[]) {
 
 async function main() {
     const repositories = await parseGitHub(['https://github.com/trending'])
-    
+
     repositories.forEach((repository: any) => console.log(repository))
 }
 
