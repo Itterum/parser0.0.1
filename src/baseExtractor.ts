@@ -1,11 +1,8 @@
-import * as cheerio from 'cheerio'
 import { chromium, Page } from 'playwright'
 
 export abstract class BaseExtractor<T> {
     abstract waitSelector: string
     abstract domain: string
-
-    abstract parseEntity($: cheerio.CheerioAPI, page?: Page): T
 
     async scrollToEnd(page: Page): Promise<void> {
         await page.evaluate(() => {
@@ -46,26 +43,27 @@ export abstract class BaseExtractor<T> {
         })
     }
 
+    abstract parseEntity(element: any, page?: Page): Promise<T>
+
     async parsePage(url: string): Promise<T[]> {
         // const browser = await chromium.connectOverCDP('http://localhost:9222')
         const browser = await chromium.launch()
         // const defaultContext = browser.contexts()[0]
         const page = await browser.newPage()
 
+        await page.route(/(png|jpeg|jpg|svg)$/, route => route.abort())
+
         try {
-            await this.logRequests(page, '')
+            // await this.logRequests(page, '')
             await page.goto(url)
             await page.waitForSelector(this.waitSelector)
 
-            await this.scrollToEnd(page)
+            // await this.scrollToEnd(page)
 
             const entities = await page.$$(this.waitSelector)
 
             return await Promise.all(entities.map(async (element) => {
-                const html = await element.innerHTML()
-                const $ = cheerio.load(html)
-
-                return this.parseEntity($, page)
+                return this.parseEntity(element)
             }))
         } catch (error) {
             console.error(error)

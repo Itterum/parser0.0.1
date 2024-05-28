@@ -1,6 +1,6 @@
 {
-  "name": "parser2.0",
-  "version": "1.0.0",
+  "name": "parser0.0.1",
+  "version": "0.0.1",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -17,7 +17,6 @@
     "typescript": "^5.3.3"
   },
   "dependencies": {
-    "cheerio": "^1.0.0-rc.12",
     "playwright": "^1.41.1"
   }
 }
