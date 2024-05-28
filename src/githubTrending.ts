@@ -1,4 +1,3 @@
-import { CheerioAPI } from 'cheerio'
 import { BaseExtractor } from './baseExtractor'
 
 type Repository = {
@@ -15,15 +14,23 @@ export class GitHubExtractor extends BaseExtractor<Repository> {
     domain = 'https://github.com'
     waitSelector = '.Box-row'
 
-    parseEntity($: CheerioAPI): Repository {
+    async parseEntity(element: any): Promise<Repository> {
+        const title = await element.$('.h3')
+        const url = await element.$('.h3 > a')
+        const description = await element.$('.col-9')
+        const language = await element.$('[itemprop="programmingLanguage"]')
+        const countAllStars = await element.$('a.Link[href$="/stargazers"]')
+        const countStarsToday = await element.$('span.d-inline-block.float-sm-right')
+        const countForks = await element.$('a.Link[href$="/forks"]')
+
         return {
-            title: $('.h3').text().trim().replace(/\s+/g, ' ') || '',
-            url: new URL(($('.h3 > a').attr('href') || ''), this.domain).href,
-            description: $('.col-9').text().trim() || '',
-            language: $('.d-inline-block').find('[itemprop="programmingLanguage"]').text().trim() || '',
-            countAllStars: parseInt($('a.Link[href$="/stargazers"]').text().replace(',', '')) || 0,
-            countStarsToday: parseInt($('span.d-inline-block.float-sm-right').text().replace(',', '')) || 0,
-            countForks: parseInt($('a.Link[href$="/forks"]').text().replace(',', '')) || 0,
+            title: (await title.textContent()).trim().replace(/\s+/g, ' '),
+            url: new URL(await url.getAttribute('href'), this.domain).href,
+            description: (await description?.textContent())?.trim() || null,
+            language: (await language?.textContent())?.trim(),
+            countAllStars: parseInt((await countAllStars.textContent())?.trim().replace(',', '')),
+            countStarsToday: parseInt((await countStarsToday.textContent())?.trim().replace(',', '')),
+            countForks: parseInt((await countForks.textContent())?.trim().replace(',', '')),
         }
     }
 }
