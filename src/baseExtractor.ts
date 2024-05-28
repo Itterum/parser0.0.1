@@ -1,4 +1,5 @@
 import { chromium, Page } from 'playwright'
+import { getRandomProxy } from './utils'
 
 export abstract class BaseExtractor<T> {
     abstract waitSelector: string
@@ -46,16 +47,24 @@ export abstract class BaseExtractor<T> {
     abstract parseEntity(element: any, page?: Page): Promise<T>
 
     async parsePage(url: string): Promise<T[]> {
+        const proxy = getRandomProxy()
+
+        const launchOptions = {
+            // headless: false,
+            proxy: proxy
+        }
+
         // const browser = await chromium.connectOverCDP('http://localhost:9222')
-        const browser = await chromium.launch()
+        const browser = await chromium.launch(launchOptions)
         // const defaultContext = browser.contexts()[0]
         const page = await browser.newPage()
 
         await page.route(/(png|jpeg|jpg|svg)$/, route => route.abort())
 
         try {
-            // await this.logRequests(page, '')
+            await this.logRequests(page, proxy.server)
             await page.goto(url)
+            await page.waitForTimeout(60000)
             await page.waitForSelector(this.waitSelector)
 
             // await this.scrollToEnd(page)
