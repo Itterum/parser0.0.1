@@ -47,7 +47,7 @@ export abstract class BaseExtractor<T> {
     abstract parseEntity(element: any, page?: Page): Promise<T>
 
     async parsePage(url: string): Promise<T[]> {
-        const proxy = getRandomProxy()
+        const proxy = await getRandomProxy()
 
         const launchOptions = {
             // headless: false,

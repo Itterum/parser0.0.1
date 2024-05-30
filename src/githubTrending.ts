@@ -11,7 +11,7 @@ type Repository = {
 }
 
 export class GitHubExtractor extends BaseExtractor<Repository> {
-    domain = 'https://github.com'
+    domain = 'github.com'
     waitSelector = '.Box-row'
 
     async parseEntity(element: any): Promise<Repository> {
@@ -25,7 +25,7 @@ export class GitHubExtractor extends BaseExtractor<Repository> {
 
         return {
             title: (await title.textContent()).trim().replace(/\s+/g, ' '),
-            url: new URL(await url.getAttribute('href'), this.domain).href,
+            url: new URL(await url.getAttribute('href'), `https://${this.domain}`).href,
             description: (await description?.textContent())?.trim() || null,
             language: (await language?.textContent())?.trim(),
             countAllStars: parseInt((await countAllStars.textContent())?.trim().replace(',', '')),
