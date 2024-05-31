@@ -1,4 +1,5 @@
 import { BaseExtractor } from './baseExtractor'
+import { ElementHandle } from 'playwright'
 
 type Repository = {
     title: string
@@ -14,7 +15,7 @@ export class GitHubExtractor extends BaseExtractor<Repository> {
     domain = 'github.com'
     waitSelector = '.Box-row'
 
-    async parseEntity(element: any): Promise<Repository> {
+    async parseEntity(element: ElementHandle): Promise<Repository> {
         const title = await element.$('.h3')
         const url = await element.$('.h3 > a')
         const description = await element.$('.col-9')
@@ -24,13 +25,13 @@ export class GitHubExtractor extends BaseExtractor<Repository> {
         const countForks = await element.$('a.Link[href$="/forks"]')
 
         return {
-            title: (await title.textContent()).trim().replace(/\s+/g, ' '),
-            url: new URL(await url.getAttribute('href'), `https://${this.domain}`).href,
-            description: (await description?.textContent())?.trim() || null,
-            language: (await language?.textContent())?.trim(),
-            countAllStars: parseInt((await countAllStars.textContent())?.trim().replace(',', '')),
-            countStarsToday: parseInt((await countStarsToday.textContent())?.trim().replace(',', '')),
-            countForks: parseInt((await countForks.textContent())?.trim().replace(',', '')),
+            title: (await title?.textContent())?.trim().replace(/\s+/g, ' ') || '',
+            url: new URL(await url?.getAttribute('href') || '', `https://${this.domain}`).href,
+            description: (await description?.textContent())?.trim() || '',
+            language: (await language?.textContent())?.trim() || '',
+            countAllStars: parseInt((await countAllStars?.textContent())?.trim().replace(',', '') || ''),
+            countStarsToday: parseInt((await countStarsToday?.textContent())?.trim().replace(',', '') || ''),
+            countForks: parseInt((await countForks?.textContent())?.trim().replace(',', '') || ''),
         }
     }
 }

@@ -1,7 +1,8 @@
+import { BaseExtractor } from './baseExtractor'
 import { GitHubExtractor } from './githubTrending'
 import { MaklerExtractor } from './hi-tech'
 
-async function runExtractor(urls: string[], extractor: any) {
+async function runExtractor<T>(urls: string[], extractor: BaseExtractor<T> ): Promise<T[] | T> {
     if (urls.length > 1) {
         for (const url of urls) {
             return extractor.parsePage(url)
@@ -12,7 +13,7 @@ async function runExtractor(urls: string[], extractor: any) {
 }
 
 async function main() {
-    const github = new GitHubExtractor()
+    // const github = new GitHubExtractor()
     // const repositories = await parseGitHub(['https://github.com/trending'], github)
     // console.log(repositories)
     

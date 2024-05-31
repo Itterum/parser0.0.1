@@ -1,7 +1,17 @@
-import { chromium, Page } from 'playwright'
+import { chromium, ElementHandle, Page } from 'playwright'
 import { checkHealthProxies, getRandomProxy } from './utils'
 
-export abstract class BaseExtractor<T> {
+export interface IExtractor<T> {
+    waitSelector: string
+    domain: string
+
+    scrollToEnd(page: Page): Promise<void>
+    logRequests(page: Page, proxy: string): Promise<void>
+    parseEntity(element: ElementHandle, page?: Page): Promise<T>
+    parsePage(url: string): Promise<T[]>
+}
+
+export abstract class BaseExtractor<T> implements IExtractor<T> {
     abstract waitSelector: string
     abstract domain: string
 
@@ -44,7 +54,7 @@ export abstract class BaseExtractor<T> {
         })
     }
 
-    abstract parseEntity(element: any, page?: Page): Promise<T>
+    abstract parseEntity(element: ElementHandle, page?: Page): Promise<T>
 
     async parsePage(url: string): Promise<T[]> {
         // let proxy = await getRandomProxy()
