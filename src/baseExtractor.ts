@@ -1,13 +1,36 @@
 import { chromium, ElementHandle, Page } from 'playwright'
 import { checkHealthProxies, getRandomProxy } from './utils'
 
+export interface IBaseEntity {
+    fields: {
+        [key: string]: string | number
+    }
+    collected: {
+        date: Date
+    }
+}
+
+export class BaseEntity implements IBaseEntity {
+    fields: {
+        [key: string]: string | number
+    }
+    collected: {
+        date: Date
+    }
+
+    constructor(fields: { [key: string]: string | number }) {
+        this.fields = fields
+        this.collected = { date: new Date() }
+    }
+}
+
 export interface IExtractor<T> {
     waitSelector: string
     domain: string
 
     scrollToEnd(page: Page): Promise<void>
     logRequests(page: Page, proxy: string): Promise<void>
-    parseEntity(element: ElementHandle, page?: Page): Promise<T>
+    parseEntity(element: ElementHandle): Promise<T>
     parsePage(url: string): Promise<T[]>
 }
 
@@ -54,7 +77,7 @@ export abstract class BaseExtractor<T> implements IExtractor<T> {
         })
     }
 
-    abstract parseEntity(element: ElementHandle, page?: Page): Promise<T>
+    abstract parseEntity(element: ElementHandle): Promise<T>
 
     async parsePage(url: string): Promise<T[]> {
         // let proxy = await getRandomProxy()

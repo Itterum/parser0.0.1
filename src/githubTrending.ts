@@ -1,21 +1,13 @@
-import { BaseExtractor } from './baseExtractor'
+import { BaseEntity, BaseExtractor } from './baseExtractor'
 import { ElementHandle } from 'playwright'
 
-type Repository = {
-    title: string
-    url: string
-    description: string
-    language: string
-    countAllStars: number
-    countStarsToday: number
-    countForks: number
-}
+class RepositoryEntity extends BaseEntity { }
 
-export class GitHubExtractor extends BaseExtractor<Repository> {
+export class GitHubExtractor extends BaseExtractor<RepositoryEntity> {
     domain = 'github.com'
     waitSelector = '.Box-row'
 
-    async parseEntity(element: ElementHandle): Promise<Repository> {
+    async parseEntity(element: ElementHandle): Promise<RepositoryEntity> {
         const title = await element.$('.h3')
         const url = await element.$('.h3 > a')
         const description = await element.$('.col-9')
@@ -24,7 +16,7 @@ export class GitHubExtractor extends BaseExtractor<Repository> {
         const countStarsToday = await element.$('span.d-inline-block.float-sm-right')
         const countForks = await element.$('a.Link[href$="/forks"]')
 
-        return {
+        return new RepositoryEntity({
             title: (await title?.textContent())?.trim().replace(/\s+/g, ' ') || '',
             url: new URL(await url?.getAttribute('href') || '', `https://${this.domain}`).href,
             description: (await description?.textContent())?.trim() || '',
@@ -32,6 +24,6 @@ export class GitHubExtractor extends BaseExtractor<Repository> {
             countAllStars: parseInt((await countAllStars?.textContent())?.trim().replace(',', '') || ''),
             countStarsToday: parseInt((await countStarsToday?.textContent())?.trim().replace(',', '') || ''),
             countForks: parseInt((await countForks?.textContent())?.trim().replace(',', '') || ''),
-        }
+        })
     }
 }
