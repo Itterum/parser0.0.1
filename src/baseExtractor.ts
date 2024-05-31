@@ -6,11 +6,11 @@ export abstract class BaseExtractor<T> {
     abstract domain: string
 
     async scrollToEnd(page: Page): Promise<void> {
-        await page.evaluate(() => {
+        await page.evaluate(`() => {
             const maxScrollAttempts = 10
             let currentScrollAttempt = 0
 
-            function checkScrollEnd() {
+            const checkScrollEnd = () => {
                 currentScrollAttempt++
                 if (currentScrollAttempt >= maxScrollAttempts) {
                     return
@@ -28,7 +28,7 @@ export abstract class BaseExtractor<T> {
             }
 
             checkScrollEnd()
-        })
+        }`)
     }
 
     async logRequests(page: Page, proxy: string): Promise<void> {
@@ -47,13 +47,13 @@ export abstract class BaseExtractor<T> {
     abstract parseEntity(element: any, page?: Page): Promise<T>
 
     async parsePage(url: string): Promise<T[]> {
-        let proxy = await getRandomProxy()
+        // let proxy = await getRandomProxy()
 
         const launchOptions = {
             // headless: false,
-            proxy: {
-                server: proxy,
-            },
+            // proxy: {
+            //     server: proxy,
+            // },
         }
 
         // const browser = await chromium.connectOverCDP('http://localhost:9222')
@@ -64,9 +64,9 @@ export abstract class BaseExtractor<T> {
         await page.route(/(png|jpeg|jpg|svg)$/, route => route.abort())
 
         try {
-            await this.logRequests(page, proxy)
+            // await this.logRequests(page, proxy)
             await page.goto(url)
-            await page.waitForTimeout(60000)
+            // await page.waitForTimeout(60000)
             await page.waitForSelector(this.waitSelector)
 
             // await this.scrollToEnd(page)
