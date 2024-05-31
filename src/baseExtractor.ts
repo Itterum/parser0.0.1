@@ -6,7 +6,7 @@ export interface IBaseEntity {
         [key: string]: string | number
     }
     collected: {
-        date: Date
+        date: string
     }
 }
 
@@ -15,12 +15,25 @@ export class BaseEntity implements IBaseEntity {
         [key: string]: string | number
     }
     collected: {
-        date: Date
+        date: string
     }
 
     constructor(fields: { [key: string]: string | number }) {
         this.fields = fields
-        this.collected = { date: new Date() }
+        const date = new Date()
+        const timezone = 'Europe/Moscow'
+        const options = { timeZone: timezone, hour12: false }
+        this.collected = {
+            date: date.toLocaleString('en-GB', {
+                ...options,
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            }).replace(/\//g, '-')
+        }
     }
 }
 
