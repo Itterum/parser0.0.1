@@ -52,7 +52,7 @@ export abstract class BaseExtractor<T> implements IExtractor<T> {
     abstract domain: string
 
     async scrollToEnd(page: Page): Promise<void> {
-        await page.evaluate(`(() => {
+        await page.evaluate(() => {
             const maxScrollAttempts = 10
             let currentScrollAttempt = 0
 
@@ -65,7 +65,7 @@ export abstract class BaseExtractor<T> implements IExtractor<T> {
                 const scrollTop = document.documentElement.scrollTop || document.body.scrollTop
                 const scrollHeight = document.documentElement.scrollHeight || document.body.scrollHeight
 
-                if (scrollTop === scrollHeight) {
+                if (scrollTop + window.innerHeight >= scrollHeight) {
                     return
                 }
 
@@ -74,8 +74,9 @@ export abstract class BaseExtractor<T> implements IExtractor<T> {
             }
 
             checkScrollEnd()
-        })()`)
+        })
     }
+
 
     async logRequests(page: Page, proxy: string): Promise<void> {
         page.on('request', (request) => {
