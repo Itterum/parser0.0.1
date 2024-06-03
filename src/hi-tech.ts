@@ -6,7 +6,10 @@ class ProductEntity extends BaseEntity { }
 export class HiTechExtractor extends BaseExtractor<ProductEntity> {
     domain = 'hi-tech.md'
     waitSelector = '.ypi-grid-list__item_body'
+    pager = 'Показать ещё'
+    endPage = '.already-showing-all-products'
 
+    // page.getByRole('link', { name: 'Показать ещё 36 товаров' }).click()
     async parseEntity(element: ElementHandle): Promise<ProductEntity> {
         const title = await element.$('.ty-grid-list__item-name')
         let priceText = await element.$('.ty-price')

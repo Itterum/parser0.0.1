@@ -40,6 +40,7 @@ export class BaseEntity implements IBaseEntity {
 export interface IExtractor<T> {
     waitSelector: string
     domain: string
+    pager?: string
 
     scrollToEnd(page: Page): Promise<void>
     logRequests(page: Page, proxy: string): Promise<void>
@@ -50,33 +51,20 @@ export interface IExtractor<T> {
 export abstract class BaseExtractor<T> implements IExtractor<T> {
     abstract waitSelector: string
     abstract domain: string
+    pager?: string
+    endPage?: string
 
     async scrollToEnd(page: Page): Promise<void> {
-        await page.evaluate(() => {
-            const maxScrollAttempts = 10
-            let currentScrollAttempt = 0
+        const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
-            const checkScrollEnd = () => {
-                currentScrollAttempt++
-                if (currentScrollAttempt >= maxScrollAttempts) {
-                    return
-                }
-
-                const scrollTop = document.documentElement.scrollTop || document.body.scrollTop
-                const scrollHeight = document.documentElement.scrollHeight || document.body.scrollHeight
-
-                if (scrollTop + window.innerHeight >= scrollHeight) {
-                    return
-                }
-
-                window.scrollTo(0, scrollHeight)
-                requestAnimationFrame(checkScrollEnd)
-            }
-
-            checkScrollEnd()
-        })
+        for (let i = 0;i < 10;i++) {
+            const previousHeight = await page.evaluate('document.body.scrollHeight')
+            await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
+            await delay(2000)
+            const newHeight = await page.evaluate('document.body.scrollHeight')
+            if (newHeight === previousHeight) break
+        }
     }
-
 
     async logRequests(page: Page, proxy: string): Promise<void> {
         page.on('request', (request) => {
@@ -118,11 +106,29 @@ export abstract class BaseExtractor<T> implements IExtractor<T> {
 
             await this.scrollToEnd(page)
 
-            const entities = await page.$$(this.waitSelector)
+            const items: T[] = []
 
-            return await Promise.all(entities.map(async (element) => {
-                return this.parseEntity(element)
-            }))
+            while (true) {
+                if (this.pager) {
+                    await page.getByRole('link', { name: new RegExp(`^${this.pager}`, 'i') }).click()
+                }
+
+                await this.scrollToEnd(page)
+
+                const allProductsShown = await page.$(`${this.endPage}`)
+                if (allProductsShown) {
+                    break
+                }
+            }
+
+            const elements = await page.$$(this.waitSelector)
+
+            for (const element of elements) {
+                const item = await this.parseEntity(element)
+                items.push(item)
+            }
+
+            return items
         } catch (error) {
             console.error(error)
             return []

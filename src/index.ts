@@ -45,11 +45,11 @@ async function runExtractor<T>(urls: string[], extractor: BaseExtractor<T>, enti
 
 async function main() {
     const outputDir = './data'
-    const github = new GitHubExtractor()
-    await runExtractor(['https://github.com/trending'], github, 'GitHubRepositories', outputDir)
+    // const github = new GitHubExtractor()
+    // await runExtractor(['https://github.com/trending'], github, 'GitHubRepositories', outputDir)
 
     const hitech = new HiTechExtractor()
-    await runExtractor(['https://hi-tech.md/kompyuternaya-tehnika/tovary-apple/macbook/'], hitech, 'HiTechProduct', outputDir)
+    await runExtractor(['https://hi-tech.md/kompyuternaya-tehnika/tovary-apple/iphone/'], hitech, 'HiTechProduct', outputDir)
 }
 
 main()
