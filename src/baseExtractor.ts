@@ -52,7 +52,7 @@ export abstract class BaseExtractor<T> implements IExtractor<T> {
     abstract domain: string
 
     async scrollToEnd(page: Page): Promise<void> {
-        await page.evaluate(`() => {
+        await page.evaluate(`(() => {
             const maxScrollAttempts = 10
             let currentScrollAttempt = 0
 
@@ -74,7 +74,7 @@ export abstract class BaseExtractor<T> implements IExtractor<T> {
             }
 
             checkScrollEnd()
-        }`)
+        })()`)
     }
 
     async logRequests(page: Page, proxy: string): Promise<void> {
@@ -96,7 +96,7 @@ export abstract class BaseExtractor<T> implements IExtractor<T> {
         // let proxy = await getRandomProxy()
 
         const launchOptions = {
-            // headless: false,
+            headless: false,
             // proxy: {
             //     server: proxy,
             // },
@@ -115,7 +115,7 @@ export abstract class BaseExtractor<T> implements IExtractor<T> {
             // await page.waitForTimeout(60000)
             await page.waitForSelector(this.waitSelector)
 
-            // await this.scrollToEnd(page)
+            await this.scrollToEnd(page)
 
             const entities = await page.$$(this.waitSelector)
 
