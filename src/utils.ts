@@ -23,7 +23,7 @@ export async function getRandomProxy(): Promise<string> {
     }
 
     const reqOptions = {
-        url: "https://proxylist.geonode.com/api/proxy-list?protocols=http%2Chttps&limit=500&page=1&sort_by=lastChecked&sort_type=desc",
+        url: "",
         method: "GET",
         headers: headersList,
     }
