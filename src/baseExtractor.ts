@@ -1,5 +1,6 @@
-import { chromium, ElementHandle, Page } from 'playwright'
-import { checkHealthProxies, getRandomProxy } from './utils'
+import {chromium, ElementHandle, Page} from 'playwright'
+
+// import { checkHealthProxies, getRandomProxy } from './utils'
 
 export interface IBaseEntity {
     fields: {
@@ -22,7 +23,7 @@ export class BaseEntity implements IBaseEntity {
         this.fields = fields
         const date = new Date()
         const timezone = 'Europe/Moscow'
-        const options = { timeZone: timezone, hour12: false }
+        const options = {timeZone: timezone, hour12: false}
         this.collected = {
             date: date.toLocaleString('en-GB', {
                 ...options,
@@ -40,24 +41,32 @@ export class BaseEntity implements IBaseEntity {
 export interface IExtractor<T> {
     waitSelector: string
     domain: string
-    pager?: string
+    pager?: {
+        start: string,
+        end: string,
+    }
 
     scrollToEnd(page: Page): Promise<void>
+
     logRequests(page: Page, proxy: string): Promise<void>
+
     parseEntity(element: ElementHandle): Promise<T>
+
     parsePage(url: string): Promise<T[]>
 }
 
 export abstract class BaseExtractor<T> implements IExtractor<T> {
     abstract waitSelector: string
     abstract domain: string
-    pager?: string
-    endPage?: string
+    pager?: {
+        start: string,
+        end: string,
+    }
 
     async scrollToEnd(page: Page): Promise<void> {
         const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
-        for (let i = 0;i < 10;i++) {
+        for (let i = 0; i < 10; i++) {
             const previousHeight = await page.evaluate('document.body.scrollHeight')
             await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
             await delay(2000)
@@ -82,10 +91,8 @@ export abstract class BaseExtractor<T> implements IExtractor<T> {
     abstract parseEntity(element: ElementHandle): Promise<T>
 
     async parsePage(url: string): Promise<T[]> {
-        // let proxy = await getRandomProxy()
-
         const launchOptions = {
-            headless: false,
+            headless: true,
             // proxy: {
             //     server: proxy,
             // },
@@ -110,12 +117,12 @@ export abstract class BaseExtractor<T> implements IExtractor<T> {
 
             while (true) {
                 if (this.pager) {
-                    await page.getByRole('link', { name: new RegExp(`^${this.pager}`, 'i') }).click()
+                    await page.getByRole('link', {name: new RegExp(`^${this.pager.start}`, 'i')}).click()
                 }
 
                 await this.scrollToEnd(page)
 
-                const allProductsShown = await page.$(`${this.endPage}`)
+                const allProductsShown = await page.$(`${this.pager?.end}`)
                 if (allProductsShown) {
                     break
                 }

@@ -1,13 +1,16 @@
-import { BaseEntity, BaseExtractor } from './baseExtractor'
-import { ElementHandle } from 'playwright'
+import {BaseEntity, BaseExtractor} from './baseExtractor'
+import {ElementHandle} from 'playwright'
 
-class ProductEntity extends BaseEntity { }
+class ProductEntity extends BaseEntity {
+}
 
 export class HiTechExtractor extends BaseExtractor<ProductEntity> {
     domain = 'hi-tech.md'
     waitSelector = '.ypi-grid-list__item_body'
-    pager = 'Показать ещё'
-    endPage = '.already-showing-all-products'
+    pager = {
+        start: 'Показать ещё',
+        end: '.already-showing-all-products',
+    }
 
     async parseEntity(element: ElementHandle): Promise<ProductEntity> {
         const title = await element.$('.ty-grid-list__item-name')

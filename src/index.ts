@@ -1,7 +1,7 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import { BaseExtractor } from './baseExtractor'
-import { GitHubExtractor } from './githubTrending'
+// import { GitHubExtractor } from './githubTrending'
 import { HiTechExtractor } from './hi-tech'
 
 async function saveDataToFile<T>(data: T[], entityType: string, outputDir: string) {
