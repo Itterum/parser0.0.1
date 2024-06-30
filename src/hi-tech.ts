@@ -1,8 +1,7 @@
-import {BaseEntity, BaseExtractor} from './baseExtractor'
-import {ElementHandle} from 'playwright'
+import { BaseEntity, BaseExtractor } from './baseExtractor'
+import { ElementHandle } from 'playwright'
 
-class ProductEntity extends BaseEntity {
-}
+class ProductEntity extends BaseEntity { }
 
 export class HiTechExtractor extends BaseExtractor<ProductEntity> {
     domain = 'hi-tech.md'

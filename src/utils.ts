@@ -1,4 +1,6 @@
 import axios from "axios"
+import { MongoClient } from 'mongodb'
+import { IBaseEntity } from './baseExtractor'
 
 export async function checkHealthProxies(url: string, proxy: string): Promise<boolean | undefined> {
     try {
@@ -33,4 +35,24 @@ export async function getRandomProxy(): Promise<string> {
     const randomProxy = response.data.data.sort(() => 0.5 - Math.random())[0]
 
     return `${randomProxy.protocols[0]}://${randomProxy.ip}:${randomProxy.port}`
+}
+
+export async function saveDataToMongoDB<T extends IBaseEntity>(data: T[], entityType: string, mongoUri: string, dbName: string) {
+    const client = new MongoClient(mongoUri)
+
+    try {
+        await client.connect()
+        const database = client.db(dbName)
+        const collection = database.collection(entityType)
+        await collection.createIndexes([
+            { key: { 'collected.date': 1 } }
+        ])
+        // Insert data into the collection
+        await collection.insertMany(data)
+
+    } catch (error) {
+        console.error('Error saving data to MongoDB:', error)
+    } finally {
+        await client.close()
+    }
 }
