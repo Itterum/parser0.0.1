@@ -4,7 +4,7 @@ export interface IExtractor<T> {
     waitSelector: string
     domain: string
     pager?: {
-        start: string,
+        start?: string,
         end: string,
     }
 
@@ -21,7 +21,7 @@ export abstract class BaseExtractor<T> implements IExtractor<T> {
     abstract waitSelector: string
     abstract domain: string
     pager?: {
-        start: string,
+        start?: string,
         end: string,
     }
 
@@ -78,7 +78,7 @@ export abstract class BaseExtractor<T> implements IExtractor<T> {
             const items: T[] = []
 
             while (true) {
-                if (this.pager) {
+                if (this.pager?.start) {
                     await page.getByRole('link', { name: new RegExp(`^${this.pager.start}`, 'i') }).click()
                 }
 

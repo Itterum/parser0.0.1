@@ -1,12 +1,12 @@
 import { BaseExtractor } from './baseExtractor'
 import { BaseEntity } from './baseEntity'
-// import { GitHubExtractor } from './githubTrending'
+import { GitHubExtractor } from './githubTrending'
 import { HiTechExtractor } from './hi-tech'
 import dotenv from 'dotenv'
 
-dotenv.config({ path: './.env.dev' })
+dotenv.config()
 
-const mongoUri = `mongodb://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}:${process.env.DB_PORT}/`
+const mongoUri = `mongodb://${process.env.DB_USER}:${process.env.DB_PASSWORD}@localhost:${process.env.DB_PORT}/`
 const dbName = process.env.DATABASE_NAME || ""
 
 async function runExtractor<T extends BaseEntity>(urls: string[], extractor: BaseExtractor<T>, entityType: string): Promise<void> {
@@ -29,8 +29,8 @@ async function runExtractor<T extends BaseEntity>(urls: string[], extractor: Bas
 }
 
 async function main() {
-    // const github = new GitHubExtractor()
-    // await runExtractor(['https://github.com/trending'], github, 'GitHubRepositories')
+    const github = new GitHubExtractor()
+    await runExtractor(['https://github.com/trending'], github, 'GitHubRepositories')
 
     const hitech = new HiTechExtractor()
     await runExtractor(['https://hi-tech.md/kompyuternaya-tehnika/tovary-apple/iphone/'], hitech, 'HiTechProduct')

@@ -7,6 +7,9 @@ class RepositoryEntity extends BaseEntity { }
 export class GitHubExtractor extends BaseExtractor<RepositoryEntity> {
     domain = 'github.com'
     waitSelector = '.Box-row'
+    pager = {
+        end: '.footer',
+    }
 
     async parseEntity(element: ElementHandle): Promise<RepositoryEntity> {
         const title = await element.$('.h3')
