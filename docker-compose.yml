@@ -16,18 +16,18 @@ services:
         MONGO_INITDB_ROOT_USERNAME: ${DB_USER:-defaul_value}
         MONGO_INITDB_ROOT_PASSWORD: ${DB_PASSWORD:-defaul_value}
         sslTunnelUsername: NONE
-    app:
-        build:
-          context: .
-          dockerfile: Dockerfile.dev
-        command: yarn start
-        ports:
-          - "3000:3000"
-        working_dir: /src
-        volumes:
-          - .:/src
-        depends_on:
-          - mongodb
+    # app:
+    #     build:
+    #       context: .
+    #       dockerfile: Dockerfile.dev
+    #     command: yarn start
+    #     ports:
+    #       - "3000:3000"
+    #     working_dir: /src
+    #     volumes:
+    #       - .:/src
+    #     depends_on:
+    #       - mongodb
 
 volumes:
   mongodb_data:

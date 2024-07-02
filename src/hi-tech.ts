@@ -1,4 +1,5 @@
-import { BaseEntity, BaseExtractor } from './baseExtractor'
+import { BaseExtractor } from './baseExtractor'
+import { BaseEntity } from './baseEntity'
 import { ElementHandle } from 'playwright'
 
 class ProductEntity extends BaseEntity { }

@@ -1,15 +1,15 @@
-import { BaseExtractor, IBaseEntity } from './baseExtractor'
+import { BaseExtractor } from './baseExtractor'
+import { BaseEntity } from './baseEntity'
 // import { GitHubExtractor } from './githubTrending'
 import { HiTechExtractor } from './hi-tech'
-import { saveDataToMongoDB } from './utils'
 import dotenv from 'dotenv'
 
-dotenv.config()
+dotenv.config({ path: './.env.dev' })
 
-const mongoUri = `mongodb://${process.env.DB_USER}:${process.env.DB_PASSWORD}@localhost:27017/`
-const dbName = 'testdb'
+const mongoUri = `mongodb://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}:${process.env.DB_PORT}/`
+const dbName = process.env.DATABASE_NAME || ""
 
-async function runExtractor<T extends IBaseEntity>(urls: string[], extractor: BaseExtractor<T>, entityType: string): Promise<void> {
+async function runExtractor<T extends BaseEntity>(urls: string[], extractor: BaseExtractor<T>, entityType: string): Promise<void> {
     let data: T[] = []
 
     for (const url of urls) {
@@ -18,7 +18,9 @@ async function runExtractor<T extends IBaseEntity>(urls: string[], extractor: Ba
     }
 
     try {
-        await saveDataToMongoDB(data, entityType, mongoUri, dbName)
+        for (const entity of data) {
+            await entity.save(mongoUri, dbName, entityType)
+        }
     } catch (err) {
         console.error('Error:', err)
     } finally {
