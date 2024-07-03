@@ -1,4 +1,6 @@
 import axios from "axios"
+import { BaseEntity } from './baseEntity'
+import { BaseExtractor } from './extractors/baseExtractor'
 
 export async function checkHealthProxies(url: string, proxy: string): Promise<boolean | undefined> {
     try {
@@ -33,4 +35,22 @@ export async function getRandomProxy(): Promise<string> {
     const randomProxy = response.data.data.sort(() => 0.5 - Math.random())[0]
 
     return `${randomProxy.protocols[0]}://${randomProxy.ip}:${randomProxy.port}`
+}
+export async function runExtractor<T extends BaseEntity>(urls: string[], extractor: BaseExtractor<T>, entityType: string): Promise<void> {
+    let data: T[] = []
+
+    for (const url of urls) {
+        const result = await extractor.parsePage(url)
+        data.push(...result)
+    }
+
+    try {
+        for (const entity of data) {
+            await entity.save(entityType)
+        }
+    } catch (err) {
+        console.error('Error:', err)
+    } finally {
+        console.log('Data saved successfully')
+    }
 }

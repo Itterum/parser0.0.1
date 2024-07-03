@@ -1,10 +1,10 @@
 import { BaseExtractor } from './baseExtractor'
-import { BaseEntity } from './baseEntity'
+import { BaseEntity } from '../baseEntity'
 import { ElementHandle } from 'playwright'
 
 class ProductEntity extends BaseEntity { }
 
-export class HiTechExtractor extends BaseExtractor<ProductEntity> {
+export default class HiTechExtractor extends BaseExtractor<ProductEntity> {
     domain = 'hi-tech.md'
     waitSelector = '.ypi-grid-list__item_body'
     pager = {
