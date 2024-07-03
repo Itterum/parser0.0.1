@@ -1,33 +1,58 @@
-import { BaseExtractor } from './baseExtractor'
-import { BaseEntity } from './baseEntity'
-import { GitHubExtractor } from './githubTrending'
-import { HiTechExtractor } from './hiTech'
+import express, { Express, Request, Response } from 'express'
+import dotenv from 'dotenv'
+import * as fs from 'fs'
+import path from 'path'
+import { runExtractor } from './utils'
 
-async function runExtractor<T extends BaseEntity>(urls: string[], extractor: BaseExtractor<T>, entityType: string): Promise<void> {
-    let data: T[] = []
+dotenv.config()
 
-    for (const url of urls) {
-        const result = await extractor.parsePage(url)
-        data.push(...result)
+const app: Express = express()
+const host = process.env.APP_HOST || 'localhost'
+const port = process.env.APP_PORT || 3000
+
+app.use(express.json())
+
+app.get('/', (req: Request, res: Response) => {
+    res.send('Express + TypeScript Server')
+})
+
+app.get('/api/extractors', (req: Request, res: Response) => {
+    fs.readdir('./dist/extractors', (err, files) => {
+        if (err) {
+            console.error(err)
+            res.status(500).send('Error reading directory')
+            return
+        }
+
+        const extractorNames = files.map(file => {
+            return path.parse(file).name
+        })
+
+        res.send(extractorNames)
+    })
+})
+
+app.post('/api/extractors', async (req: Request, res: Response) => {
+    console.log('Received request body:', req.body)
+    const urls = req.body.urls
+    const extractorName = req.body.extractor
+
+    if (!urls || !extractorName) {
+        return res.status(400).send('Missing urls or extractor name')
     }
 
     try {
-        for (const entity of data) {
-            await entity.save(entityType)
-        }
+        const extractorPath = path.join(__dirname, `../dist/extractors/${extractorName}`)
+        const extractor = require(extractorPath)
+        const extractorInstance = new extractor.default()
+        await runExtractor(urls, extractorInstance, extractorName)
+        res.status(200).send('Extractor run successfully')
     } catch (err) {
-        console.error('Error:', err)
-    } finally {
-        console.log('Data saved successfully')
+        console.error(err)
+        res.status(500).send('Error running extractor')
     }
-}
+})
 
-async function main() {
-    const github = new GitHubExtractor()
-    await runExtractor(['https://github.com/trending'], github, 'GitHubRepositories')
-
-    const hitech = new HiTechExtractor()
-    await runExtractor(['https://hi-tech.md/kompyuternaya-tehnika/tovary-apple/iphone/'], hitech, 'HiTechProduct')
-}
-
-main()
+app.listen(port, () => {
+    console.log(`⚡️[server]: Server is running at http://${host}:${port}`)
+})

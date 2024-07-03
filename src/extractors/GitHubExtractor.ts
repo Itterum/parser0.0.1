@@ -1,10 +1,10 @@
 import { BaseExtractor } from './baseExtractor'
-import { BaseEntity } from './baseEntity'
+import { BaseEntity } from '../baseEntity'
 import { ElementHandle } from 'playwright'
 
 class RepositoryEntity extends BaseEntity { }
 
-export class GitHubExtractor extends BaseExtractor<RepositoryEntity> {
+export default class GitHubExtractor extends BaseExtractor<RepositoryEntity> {
     domain = 'github.com'
     waitSelector = '.Box-row'
     pager = {
