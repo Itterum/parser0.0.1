@@ -1,4 +1,5 @@
-import { BaseEntity, BaseExtractor } from './baseExtractor'
+import { BaseExtractor } from './baseExtractor'
+import { BaseEntity } from './baseEntity'
 import { ElementHandle } from 'playwright'
 
 class ProductEntity extends BaseEntity { }
@@ -13,7 +14,7 @@ export class HiTechExtractor extends BaseExtractor<ProductEntity> {
 
     async parseEntity(element: ElementHandle): Promise<ProductEntity> {
         const title = await element.$('.ty-grid-list__item-name')
-        let priceText = await element.$('.ty-price')
+        const priceText = await element.$('.ty-price')
         const url = await element.$('.ty-grid-list__item-name > bdi > a')
 
         const priceRes = await priceText?.textContent()

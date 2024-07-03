@@ -1,15 +1,9 @@
-import { BaseExtractor, IBaseEntity } from './baseExtractor'
-// import { GitHubExtractor } from './githubTrending'
-import { HiTechExtractor } from './hi-tech'
-import { saveDataToMongoDB } from './utils'
-import dotenv from 'dotenv'
+import { BaseExtractor } from './baseExtractor'
+import { BaseEntity } from './baseEntity'
+import { GitHubExtractor } from './githubTrending'
+import { HiTechExtractor } from './hiTech'
 
-dotenv.config()
-
-const mongoUri = `mongodb://${process.env.DB_USER}:${process.env.DB_PASSWORD}@localhost:27017/`
-const dbName = 'testdb'
-
-async function runExtractor<T extends IBaseEntity>(urls: string[], extractor: BaseExtractor<T>, entityType: string): Promise<void> {
+async function runExtractor<T extends BaseEntity>(urls: string[], extractor: BaseExtractor<T>, entityType: string): Promise<void> {
     let data: T[] = []
 
     for (const url of urls) {
@@ -18,7 +12,9 @@ async function runExtractor<T extends IBaseEntity>(urls: string[], extractor: Ba
     }
 
     try {
-        await saveDataToMongoDB(data, entityType, mongoUri, dbName)
+        for (const entity of data) {
+            await entity.save(entityType)
+        }
     } catch (err) {
         console.error('Error:', err)
     } finally {
@@ -27,8 +23,8 @@ async function runExtractor<T extends IBaseEntity>(urls: string[], extractor: Ba
 }
 
 async function main() {
-    // const github = new GitHubExtractor()
-    // await runExtractor(['https://github.com/trending'], github, 'GitHubRepositories')
+    const github = new GitHubExtractor()
+    await runExtractor(['https://github.com/trending'], github, 'GitHubRepositories')
 
     const hitech = new HiTechExtractor()
     await runExtractor(['https://hi-tech.md/kompyuternaya-tehnika/tovary-apple/iphone/'], hitech, 'HiTechProduct')

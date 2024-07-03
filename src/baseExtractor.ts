@@ -1,48 +1,10 @@
-import {chromium, ElementHandle, Page} from 'playwright'
-
-// import { checkHealthProxies, getRandomProxy } from './utils'
-
-export interface IBaseEntity {
-    fields: {
-        [key: string]: string | number
-    }
-    collected: {
-        date: string
-    }
-}
-
-export class BaseEntity implements IBaseEntity {
-    fields: {
-        [key: string]: string | number
-    }
-    collected: {
-        date: string
-    }
-
-    constructor(fields: { [key: string]: string | number }) {
-        this.fields = fields
-        const date = new Date()
-        const timezone = 'Europe/Moscow'
-        const options = {timeZone: timezone, hour12: false}
-        this.collected = {
-            date: date.toLocaleString('en-GB', {
-                ...options,
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit'
-            }).replace(/\//g, '-')
-        }
-    }
-}
+import { chromium, ElementHandle, Page } from 'playwright'
 
 export interface IExtractor<T> {
     waitSelector: string
     domain: string
     pager?: {
-        start: string,
+        start?: string,
         end: string,
     }
 
@@ -59,14 +21,14 @@ export abstract class BaseExtractor<T> implements IExtractor<T> {
     abstract waitSelector: string
     abstract domain: string
     pager?: {
-        start: string,
+        start?: string,
         end: string,
     }
 
     async scrollToEnd(page: Page): Promise<void> {
         const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
-        for (let i = 0; i < 10; i++) {
+        for (let i = 0;i < 10;i++) {
             const previousHeight = await page.evaluate('document.body.scrollHeight')
             await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
             await delay(2000)
@@ -75,7 +37,7 @@ export abstract class BaseExtractor<T> implements IExtractor<T> {
         }
     }
 
-    async logRequests(page: Page, proxy: string): Promise<void> {
+    async logRequests(page: Page, proxy?: string): Promise<void> {
         page.on('request', (request) => {
             const requestInfo = {
                 url: request.url(),
@@ -106,9 +68,8 @@ export abstract class BaseExtractor<T> implements IExtractor<T> {
         await page.route(/(png|jpeg|jpg|svg)$/, route => route.abort())
 
         try {
-            // await this.logRequests(page, proxy)
+            await this.logRequests(page)
             await page.goto(url)
-            // await page.waitForTimeout(60000)
             await page.waitForSelector(this.waitSelector)
 
             await this.scrollToEnd(page)
@@ -116,8 +77,8 @@ export abstract class BaseExtractor<T> implements IExtractor<T> {
             const items: T[] = []
 
             while (true) {
-                if (this.pager) {
-                    await page.getByRole('link', {name: new RegExp(`^${this.pager.start}`, 'i')}).click()
+                if (this.pager?.start) {
+                    await page.getByRole('link', { name: new RegExp(`^${this.pager.start}`, 'i') }).click()
                 }
 
                 await this.scrollToEnd(page)
