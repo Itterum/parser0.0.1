@@ -1,15 +1,14 @@
-FROM node:latest
+FROM mcr.microsoft.com/playwright:focal
 
 WORKDIR /usr/src/app
 
 COPY package.json yarn.lock ./
 
 RUN yarn cache clean && yarn install
-RUN yarn playwright install
+RUN yarn playwright install chromium
 
 COPY . .
 
-RUN  chown -R node /usr/src/app
-USER node
+RUN yarn build
 
-CMD [ "yarn", "build"]
+CMD [ "yarn", "start" ]

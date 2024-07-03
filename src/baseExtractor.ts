@@ -37,7 +37,7 @@ export abstract class BaseExtractor<T> implements IExtractor<T> {
         }
     }
 
-    async logRequests(page: Page, proxy: string): Promise<void> {
+    async logRequests(page: Page, proxy?: string): Promise<void> {
         page.on('request', (request) => {
             const requestInfo = {
                 url: request.url(),
@@ -68,9 +68,8 @@ export abstract class BaseExtractor<T> implements IExtractor<T> {
         await page.route(/(png|jpeg|jpg|svg)$/, route => route.abort())
 
         try {
-            // await this.logRequests(page, proxy)
+            await this.logRequests(page)
             await page.goto(url)
-            // await page.waitForTimeout(60000)
             await page.waitForSelector(this.waitSelector)
 
             await this.scrollToEnd(page)

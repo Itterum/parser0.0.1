@@ -35,7 +35,7 @@ export class BaseEntity implements IBaseEntity {
         }
     }
 
-    async save(mongoUri: string, dbName: string, entityType: string) {
-        await saveDataToMongoDB([this], entityType, mongoUri, dbName)
+    async save(entityType: string) {
+        await saveDataToMongoDB([this], entityType)
     }
 }

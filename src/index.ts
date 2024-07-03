@@ -1,13 +1,7 @@
 import { BaseExtractor } from './baseExtractor'
 import { BaseEntity } from './baseEntity'
 import { GitHubExtractor } from './githubTrending'
-import { HiTechExtractor } from './hi-tech'
-import dotenv from 'dotenv'
-
-dotenv.config()
-
-const mongoUri = `mongodb://${process.env.DB_USER}:${process.env.DB_PASSWORD}@localhost:${process.env.DB_PORT}/`
-const dbName = process.env.DATABASE_NAME || ""
+import { HiTechExtractor } from './hiTech'
 
 async function runExtractor<T extends BaseEntity>(urls: string[], extractor: BaseExtractor<T>, entityType: string): Promise<void> {
     let data: T[] = []
@@ -19,7 +13,7 @@ async function runExtractor<T extends BaseEntity>(urls: string[], extractor: Bas
 
     try {
         for (const entity of data) {
-            await entity.save(mongoUri, dbName, entityType)
+            await entity.save(entityType)
         }
     } catch (err) {
         console.error('Error:', err)
