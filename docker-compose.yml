@@ -32,7 +32,6 @@ services:
           dockerfile: Dockerfile.dev
         ports:
           - "3000:3000"
-        # working_dir: /src
         depends_on:
           - mongo
 
