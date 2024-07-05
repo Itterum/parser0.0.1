@@ -1,8 +1,8 @@
-import express, { Express, Request, Response } from 'express'
+import express, {Express, Request, Response} from 'express'
 import dotenv from 'dotenv'
 import * as fs from 'fs'
 import path from 'path'
-import { runExtractor } from './utils'
+import {runExtractor} from './utils'
 
 dotenv.config()
 

@@ -1,6 +1,6 @@
-import { chromium, ElementHandle, Page } from 'playwright'
+import {chromium, ElementHandle, Page} from 'playwright'
 
-export interface IExtractor<T> {
+interface IExtractor<T> {
     waitSelector: string
     domain: string
     pager?: {
@@ -8,11 +8,11 @@ export interface IExtractor<T> {
         end: string,
     }
 
-    scrollToEnd(page: Page): Promise<void>
-
     logRequests(page: Page, proxy: string): Promise<void>
 
     parseEntity(element: ElementHandle): Promise<T>
+
+    scrollToEnd(page: Page): Promise<void>
 
     parsePage(url: string): Promise<T[]>
 }
@@ -20,6 +20,9 @@ export interface IExtractor<T> {
 export abstract class BaseExtractor<T> implements IExtractor<T> {
     abstract waitSelector: string
     abstract domain: string
+
+    abstract parseEntity(element: ElementHandle): Promise<T>
+
     pager?: {
         start?: string,
         end: string,
@@ -28,7 +31,7 @@ export abstract class BaseExtractor<T> implements IExtractor<T> {
     async scrollToEnd(page: Page): Promise<void> {
         const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
-        for (let i = 0;i < 10;i++) {
+        for (let i = 0; i < 10; i++) {
             const previousHeight = await page.evaluate('document.body.scrollHeight')
             await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
             await delay(2000)
@@ -50,59 +53,54 @@ export abstract class BaseExtractor<T> implements IExtractor<T> {
         })
     }
 
-    abstract parseEntity(element: ElementHandle): Promise<T>
-
     async parsePage(url: string): Promise<T[]> {
-        const launchOptions = {
-            headless: true,
-            // proxy: {
-            //     server: proxy,
-            // },
-        }
-
-        // const browser = await chromium.connectOverCDP('http://localhost:9222')
-        const browser = await chromium.launch(launchOptions)
-        // const defaultContext = browser.contexts()[0]
+        const browser = await chromium.launch({headless: true})
         const page = await browser.newPage()
 
-        await page.route(/(png|jpeg|jpg|svg)$/, route => route.abort())
-
         try {
+            await this.setupPage(page)
             await this.logRequests(page)
             await page.goto(url)
             await page.waitForSelector(this.waitSelector)
 
-            await this.scrollToEnd(page)
-
-            const items: T[] = []
-
-            while (true) {
-                if (this.pager?.start) {
-                    await page.getByRole('link', { name: new RegExp(`^${this.pager.start}`, 'i') }).click()
-                }
-
-                await this.scrollToEnd(page)
-
-                const allProductsShown = await page.$(`${this.pager?.end}`)
-                if (allProductsShown) {
-                    break
-                }
+            if (this.pager?.start) {
+                await this.navigateThroughPages(page)
             }
+
+            await this.scrollToEnd(page)
 
             const elements = await page.$$(this.waitSelector)
 
-            for (const element of elements) {
-                const item = await this.parseEntity(element)
-                items.push(item)
-            }
-
-            return items
+            return await Promise.all(elements.map(element => this.parseEntity(element)))
         } catch (error) {
             console.error(error)
             return []
         } finally {
             await page.close()
             await browser.close()
+        }
+    }
+
+    private async setupPage(page: Page): Promise<void> {
+        await page.route(/(png|jpeg|jpg|svg)$/, route => route.abort())
+    }
+
+    private async navigateThroughPages(page: Page): Promise<void> {
+        while (true) {
+            if (this.pager?.start) {
+                try {
+                    await page.click(`text=${this.pager.start}`)
+                } catch (error) {
+                    console.log(`No more pages found for selector: ${this.pager.start}`)
+                    break
+                }
+            }
+
+            const allEntitiesShown = await page.$(this.pager?.end ?? '')
+
+            if (allEntitiesShown) {
+                break
+            }
         }
     }
 }
