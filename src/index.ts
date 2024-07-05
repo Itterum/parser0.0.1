@@ -1,4 +1,4 @@
-import express, {Express, Request, Response} from 'express'
+import Fastify, {FastifyInstance, FastifyReply, FastifyRequest} from 'fastify'
 import dotenv from 'dotenv'
 import * as fs from 'fs'
 import path from 'path'
@@ -6,39 +6,33 @@ import {runExtractor} from './utils'
 
 dotenv.config()
 
-const app: Express = express()
+const app: FastifyInstance = Fastify({logger: true})
 const host = process.env.APP_HOST || 'localhost'
-const port = process.env.APP_PORT || 3000
+const port = Number(process.env.APP_PORT) || 3000
 
-app.use(express.json())
-
-app.get('/', (req: Request, res: Response) => {
-    res.send('Express + TypeScript Server')
+app.get('/', async (request: FastifyRequest, reply: FastifyReply) => {
+    return reply.send('Fastify + TypeScript Server!')
 })
 
-app.get('/api/extractors', (req: Request, res: Response) => {
-    fs.readdir('./dist/extractors', (err, files) => {
-        if (err) {
-            console.error(err)
-            res.status(500).send('Error reading directory')
-            return
-        }
+app.get('/api/extractors', async (request: FastifyRequest, reply: FastifyReply) => {
+    try {
+        const files = await fs.promises.readdir('./dist/extractors')
+        const extractorNames = files
+            .filter(file => !file.startsWith('baseExtractor') && file.endsWith('.js'))
+            .map(file => path.parse(file).name)
 
-        const extractorNames = files.map(file => {
-            return path.parse(file).name
-        })
-
-        res.send(extractorNames)
-    })
+        reply.send(extractorNames)
+    } catch (err) {
+        app.log.error(err)
+        reply.status(500).send('Error reading directory')
+    }
 })
 
-app.post('/api/extractors', async (req: Request, res: Response) => {
-    console.log('Received request body:', req.body)
-    const urls = req.body.urls
-    const extractorName = req.body.extractor
+app.post('/api/extractors', async (request: FastifyRequest, reply: FastifyReply) => {
+    const {urls, extractorName} = request.body as { urls: string[], extractorName: string }
 
     if (!urls || !extractorName) {
-        return res.status(400).send('Missing urls or extractor name')
+        reply.status(400).send('Missing urls or extractor name')
     }
 
     try {
@@ -46,13 +40,17 @@ app.post('/api/extractors', async (req: Request, res: Response) => {
         const extractor = require(extractorPath)
         const extractorInstance = new extractor.default()
         await runExtractor(urls, extractorInstance, extractorName)
-        res.status(200).send('Extractor run successfully')
+        reply.status(200).send('Extractor run successfully')
     } catch (err) {
-        console.error(err)
-        res.status(500).send('Error running extractor')
+        app.log.error(err)
+        reply.status(500).send('Error running extractor')
     }
 })
 
-app.listen(port, () => {
-    console.log(`⚡️[server]: Server is running at http://${host}:${port}`)
+app.listen({port, host}, (err, address) => {
+    if (err) {
+        app.log.error(err)
+        process.exit(1)
+    }
+    app.log.info(`⚡️[server]: Server is running at ${address}`)
 })
