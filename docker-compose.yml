@@ -26,14 +26,14 @@ services:
         ME_CONFIG_MONGODB_ADMINPASSWORD: ${DB_PASSWORD}
         ME_CONFIG_MONGODB_URL: mongodb://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/
         ME_CONFIG_BASICAUTH: false
-    app:
-        build:
-          context: .
-          dockerfile: Dockerfile.dev
-        ports:
-          - "3000:3000"
-        depends_on:
-          - mongo
+#    app:
+#        build:
+#          context: .
+#          dockerfile: Dockerfile.dev
+#        ports:
+#          - "3000:3000"
+#        depends_on:
+#          - mongo
 
 volumes:
   mongodb_data:
